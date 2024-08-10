@@ -1,5 +1,5 @@
 {
-  "short_name": "REACT CHAT APP",
+  "short_name": "React Chat App",
   "name": "Chat Web App using React",
   "icons": [
     {
@@ -10,6 +10,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#001111",
-  "background_color": "#fffff3"
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
 }
