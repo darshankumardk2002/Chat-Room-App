@@ -1,62 +1,85 @@
-import { useEffect, useState } from "react";
-import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp, where } from "firebase/firestore";
+
+import React, { useEffect, useState } from "react";
+import {
+  addDoc,
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  where,
+} from "firebase/firestore";
 import { auth, db } from "../firebase-config";
+import SendIcon from "@mui/icons-material/Send";
+import SingleChat from "./SingleChat";
 
-// css
-import "../styles/Chat.css";
+function Chat(props) {
+  const messageRef = collection(db, "messages");
+  const [msgs, setMgs] = useState([]);
 
-export const Chat = (props) => {
-  const { room } = props;
+  function updateScroll() {
+    var element = document.getElementById("chat-window");
+    if (element) {
+      element.scrollTop = element.scrollHeight;
+    }
+  }
+  useEffect(() => {
+    updateScroll();
+  }, [msgs]);
 
-  const [newMessage, setNewMessage] = useState("");
-  const messagesRef = collection(db, "messages");
-  const [messages, setMessages] = useState([]);
-
-  useEffect (() => {
-    const queryMessages = query(messagesRef, where("room", "==", room), orderBy("createdAt"))
-    const unsubscribe = onSnapshot(queryMessages, (snapshot) => {
+  useEffect(() => {
+    const queryMessage = query(
+      messageRef,
+      where("room", "==", props.room),
+      orderBy("createdAt")
+    );
+    const unsubscribe = onSnapshot(queryMessage, (snapshot) => {
       let messages = [];
       snapshot.forEach((doc) => {
-        messages.push({ ...doc.data(), id: doc.id })
+        messages.push({ ...doc.data(), id: doc.id });
       });
-      setMessages(messages);
+      setMgs(messages);
     });
-
     return () => unsubscribe();
-  });
+    // eslint-disable-next-line
+  }, []);
 
+  const [newMsg, setNewMsg] = useState("");
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (newMessage === "") return;
+    if (newMsg === "") return;
 
-    await addDoc(messagesRef, {
-      text: newMessage,
-      createdAt: serverTimestamp(),
+    await addDoc(messageRef, {
+      text: newMsg,
       user: auth.currentUser.displayName,
-      room: room // you can also use just 'room' instead of 'room: room'
+      createdAt: serverTimestamp(),
+      room: props.room,
     });
-  }
-
-  return <div className="chat-app">
-    <div className="header">
-      <h1>Welcome to: {room}</h1>
+    setNewMsg("");
+  };
+  return (
+    <div className="chat">
+      <h1>{props.room} Chatroom</h1>
+      <div id="chat-window">
+        {msgs.map((message) => (
+          <div>
+         <SingleChat message={message} />
+         </div>
+        ))}
+      </div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Type your message here..."
+          onChange={(e) => setNewMsg(e.target.value)}
+          value={newMsg}
+        />
+        <button type="submit">
+          <SendIcon />
+        </button>
+      </form>
     </div>
-    <div className="messages">
-      {messages.map((message) => (
-        <div className="message" key={message.id}>
-          <span className="user">{message.user}</span>
-          {message.text}
-        </div>
-      ))}
-    </div>
-    <form onSubmit={handleSubmit} className="new-message-form">
-      <input
-        className="new-message-input"
-        placeholder="Type your message here..."
-        onChange={(e) => setNewMessage(e.target.value)}
-        value={newMessage}
-      />
-      <button type="submit" className="send-button">Send</button>
-    </form>
-  </div>;
+  );
 }
+
+export default Chat;
