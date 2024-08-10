@@ -21,7 +21,7 @@ To get started with the project, follow these steps:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/arjuncvinod/Chat-Room-App.git
+git clone https://github.com/darshankumardk2002/Chat-Room-App.git
 ```
 ```bash
 cd Chat-Room-App
