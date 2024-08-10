@@ -1,64 +1,52 @@
+import React, { useState, useRef } from 'react';
+import './App.css';
+import { Auth } from './components/Auth';
 
-body {
-  padding: 0;
-  margin: 0;
-}
+// component imports
+import { Chat } from './components/Chat';
 
-.App {
-  display: flex;
-  align-items: center;
-  width: 100vw;
-  height: 100vh;
-  flex-direction: column;
-  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+// cookie imports
+import Cookies from "universal-cookie";
+import { signOut } from 'firebase/auth';
+import { auth } from './firebase-config';
 
-.app-header {
-  text-align: center;
-  background-color: #3b5998;
-  color: white;
-  width: 100%;
-}
+function App() {
+  const cookies = new Cookies();
+  const [isAuth, setIsAuth] = useState(cookies.get("auth-token"))
+  const [room, setRoom] = useState(null);
+  const roomInputRef = useRef(null);
 
-.app-container {
-  margin-top: 50px;
-}
+  const signUserOut = async () => {
+    await signOut(auth);
+    cookies.remove("auth-token");
+    setIsAuth(false);
+    setRoom(null);
+  }
 
-.room {
-  display: flex;
-  flex-direction: column;
-}
+  if (!isAuth) {
+    return (
+      <div>
+        <Auth setIsAuth={setIsAuth}/>
+      </div>
+    );
+  }
 
-.room label {
-  text-align: center;
-  font-size: 25px;
-  margin-bottom: 20px;
-}
-
-.room input {
-  width: 200px;
-  height: 30px;
-  border: 2px solid #3b5998;
-  border-radius: 6px;
-  padding-left: 5px;
-  font-size: 20px;
-  text-align: center;
-  margin: 5px;
-}
-.room button {
-  width: 210px;
-  height: 40px;
-  border: none;
-  border-radius: 6px;
-  padding-left: 5px;
-  font-size: 20px;
-  text-align: center;
-  margin: 5px;
-  background-color: #3b5998;
-  color: white;
-  cursor: pointer;
+  return (
+    <>
+      {room ? (
+        <Chat room={room}/>
+      ) : (
+          <div className="room">
+            <label>Enter Room Name:</label>
+            <input ref={roomInputRef}/>
+            <button onClick={() => setRoom(roomInputRef.current.value)}>Enter Chat</button>
+          </div>
+        )}
+      <div className="sign-out">
+        <button onClick={signUserOut}>Sign Out</button>
+      </div>
+    </>
+  )
 }
 
-.sign-out {
-  margin-top: 50px;
-}
+export default App;
